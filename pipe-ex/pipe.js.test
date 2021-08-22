@@ -1,0 +1,271 @@
+// adapted from: https://www.wix.engineering/post/breaking-chains-with-pipelines-in-modern-javascript kyle simpson
+
+var map = op => function* map(src){
+  for (const value of src) {
+    yield op(value);
+  }
+};
+
+var filter = op => function* filter(src){
+  for (const value of src) {
+    if (op(value)) {
+      yield value;
+    }
+  }
+};
+
+var slice = (start,finish = Number.MAX_SAFE_INTEGER) => function* slice(src){
+  let index = 0;
+  for (const value of src) {
+    if (index >= finish) {
+      break;
+    }
+    if (index >= start) {
+      yield value;
+    }
+    ++index;
+  }
+}
+
+function pipe(...fns) {
+  return arg => fns.reduce((v,fn) => fn(v),arg);
+}
+
+
+
+// *****************************
+
+var numbers = [11,8,3,10,5,1,2,7,6,9,12,4];
+
+var res = pipe(
+  filter(x => x % 2 == 0),
+  map(x => x + 1),
+  slice(0,3),
+  Array.from
+)
+(numbers);
+
+console.log(res);
+// [ 9, 11, 3 ]
+
+
+//const pipe = (...fns) => fns.reduce((f, g) => (arg) => g(f(arg)))
+//const minusFive = v => v - 5;
+//const addFour = v => v + 4;
+//const multiplyByTen = v => v * 10;
+//const f = pipe( minusFive, addFour, multiplyByTen, Math.abs)
+//console.log(f(0))
+
+//const _reduced = (f, g) => (arg) => g(f(arg));
+//const pipe = (...fns) => fns.reduce(_reduced);
+//const validationPipe = (...fns) => (...args) => fns.reduce((res, func) => func(...args), ...args);
+//const pipe = (...fns) => fns.reduce((f, g) => (arg) => g(f(arg)));
+
+var map = op => function* map(src){
+  for (const value of src) {
+    yield op(value);
+  }
+};
+
+var filter = op => function* filter(src){
+  for (const value of src) {
+    if (op(value)) {
+      yield value;
+    }
+  }
+};
+
+var slice = (start,finish = Number.MAX_SAFE_INTEGER) => function* slice(src){
+  let index = 0;
+  for (const value of src) {
+    if (index >= finish) {
+      break;
+    }
+    if (index >= start) {
+      yield value;
+    }
+    ++index;
+  }
+}
+
+
+//kyle simpson
+function pipe(...fns) {
+  return arg => fns.reduce((v,fn) => fn(v),arg);
+}
+
+
+//underscore
+function compose() {
+  var args = arguments
+  var start = args.length - 1;
+  return function() {
+    var i = start;
+    var result = args[start].apply(this, arguments)
+    while (i--) result = args[i].call(this, result)
+    return result
+  }
+}
+
+
+// Simple JavaScript library for iteration algorithms
+// Associated with blog post "Chains and Pipelines"
+// Created by Dan Shappir @ Wix
+// https://opensource.org/licenses/AAL
+
+// Example ussage
+const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const result1 = Array.from(
+  slice(
+    map(
+      filter(numbers, v => v % 2 === 0), v => v + 1
+    ), 0, 3
+  )
+);
+
+const result2 = numbers
+  |> filter(#, v => v % 2 === 0)
+  |> map(#, v => v + 1)
+  |> slice(#, 0, 3)
+  |> Array.from
+            
+const found = numbers
+  |> filter(#, v => v * 2 > 5)
+  |> head;
+            
+const sumOdd = numbers
+  |> filter(#, v => v % 2)
+  |> reduce(#, (acc, v) => acc + v, 0)
+  |> tail;
+
+document.write(`
+  old style: ${result1}
+  <br>
+  pipeline: ${result2}
+  <br>
+  found: ${found}
+  <br>
+  sum odd: ${sumOdd}
+`);
+
+const obj = {
+  a: 42,
+  b: "hello",
+  c: [1, 2]
+};
+    
+const filtered = obj
+  |> entries
+  |> filter(#, ([, value]) => typeof value === 'number') 
+  |> Object.fromEntries
+  |> JSON.stringify;
+    
+const bigNum = [0, 1, 22, 3, 100, 5, 1000]
+  |> find(#, v => v > 42);
+    
+document.write(`
+  <br>
+  filtered: ${filtered}
+  <br>
+  big number: ${bigNum}
+`);
+
+// Library implementation
+function* map(src, op) {
+  let index = 0;
+  for (const value of src) {
+    yield op(value, index++);
+  }
+}
+
+function* filter(src, op) {
+  let index = 0;
+  for (const value of src) {
+    if (op(value, index++)) {
+      yield value;
+    }
+  }
+}
+
+function* slice(src, start, finish = Number.MAX_SAFE_INTEGER) {
+	let index = 0;
+  for (const value of src) {
+    if (index >= finish) {
+      break;
+    }
+    if (index >= start) {
+      yield value;
+    }
+    ++index;
+  }
+}
+
+function head(src) {
+  for (const value of src) {
+    return value;
+  }
+}
+function tail(src) {
+  let value;
+  for (value of src) {}
+  return value;
+}
+    
+function find(src, op) {
+  return src
+    |> filter(#, op)
+    |> head;
+}
+
+function* reduce(src, op, acc) {
+  let index = 0;
+  for (const value of src) {
+    acc = op(acc, value, index++);
+    yield acc;
+  }
+}
+    
+function* flat(src, depth = 1) {
+  for (const value of src) {
+    if (depth > 0 && value[Symbol.iterator])  {
+      yield* flat(value, depth - 1);
+    } else {
+      yield value;      
+    }
+  }
+}
+    
+function forEach(src, op) {
+  let index = 0;
+  for (const value of src) {
+    if (op(value, index) === false) {
+      break;
+    }
+    ++index;
+  }
+}
+    
+function* allKeys(obj = {}) {
+  for (const key in obj) {
+    yield key;
+  }
+}
+function keys(obj) {
+  return obj
+    |> allKeys
+    |> filter(#, key => obj.hasOwnProperty && obj.hasOwnProperty(key));
+}
+function entries(obj) {
+  return obj
+    |> keys
+    |> map(#, key => [key, obj[key]]);
+}
+
+function reverse(src) {
+  return [...src].reverse();
+}
+function sort(src, comp) {
+  return [...src].sort(comp);
+}
+
+//const pipe = (...fns) => fns.reduce((f, g) => (arg) => g(f(arg)))

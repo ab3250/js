@@ -1,0 +1,33 @@
+{
+  "name": "pipe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pipe.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint --ext .js --ignore-path .gitignore ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "eslint": "^7.27.0"
+  },
+  "eslint.validate":[  
+    {  
+        "language":"vue",
+        "autoFix":true
+    },
+    {  
+        "language":"html",
+        "autoFix":true
+    },
+    {  
+        "language":"javascript",
+        "autoFix":true
+    },
+    {  
+        "language":"typescript",
+        "autoFix":true
+    }
+]
+}
